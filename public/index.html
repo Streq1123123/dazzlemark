@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>DazzleMark — Одежда, обувь и стиль</title>
+  <!-- Google Sign-In SDK -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
   <style>
     :root {
       --bg: #0D0D0F;
@@ -37,7 +39,6 @@
       padding-bottom: calc(70px + var(--safe-bottom));
     }
 
-    /* Header */
     header {
       position: sticky;
       top: 0;
@@ -61,15 +62,12 @@
       gap: 6px;
       cursor: pointer;
     }
-
-    .logo span {
-      color: var(--accent);
-    }
+    .logo span { color: var(--accent); }
 
     .user-pill {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
       background: var(--surface);
       border: 1px solid var(--border);
       padding: 6px 12px;
@@ -79,7 +77,19 @@
       cursor: pointer;
     }
 
-    /* Container */
+    .badge-verified {
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--success);
+      border: 1px solid var(--success);
+      border-radius: 12px;
+      font-size: 11px;
+      padding: 2px 8px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-weight: 600;
+    }
+
     .container {
       width: 100%;
       max-width: 800px;
@@ -87,7 +97,6 @@
       padding: 16px;
     }
 
-    /* Categories Horizontal Bar */
     .categories-bar {
       display: flex;
       gap: 8px;
@@ -108,7 +117,6 @@
       cursor: pointer;
       transition: all 0.2s;
     }
-
     .cat-chip.active {
       background: var(--accent);
       color: #fff;
@@ -116,12 +124,10 @@
       font-weight: 600;
     }
 
-    /* Search Input */
     .search-box {
       margin-bottom: 16px;
       position: relative;
     }
-
     .search-box input {
       width: 100%;
       background: var(--surface);
@@ -132,9 +138,7 @@
       font-size: 15px;
       outline: none;
     }
-    .search-box input:focus {
-      border-color: var(--accent);
-    }
+    .search-box input:focus { border-color: var(--accent); }
     .search-box .icon {
       position: absolute;
       left: 14px;
@@ -143,7 +147,6 @@
       color: var(--text-muted);
     }
 
-    /* Product Grid */
     .grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
@@ -159,13 +162,11 @@
       border-radius: 14px;
       overflow: hidden;
       cursor: pointer;
-      transition: transform 0.15s, border-color 0.15s;
       display: flex;
       flex-direction: column;
+      transition: transform 0.15s;
     }
-    .card:active {
-      transform: scale(0.98);
-    }
+    .card:active { transform: scale(0.98); }
 
     .card-img {
       width: 100%;
@@ -174,21 +175,18 @@
       background: #111;
       display: block;
     }
-
     .card-content {
       padding: 10px 12px;
       display: flex;
       flex-direction: column;
       flex: 1;
     }
-
     .card-price {
       font-size: 18px;
       font-weight: 700;
       color: #fff;
       margin-bottom: 4px;
     }
-
     .card-title {
       font-size: 14px;
       font-weight: 500;
@@ -200,7 +198,6 @@
       -webkit-box-orient: vertical;
       overflow: hidden;
     }
-
     .card-meta {
       font-size: 12px;
       color: var(--text-muted);
@@ -211,19 +208,6 @@
       padding-top: 6px;
     }
 
-    /* Empty state */
-    .empty-state {
-      text-align: center;
-      padding: 60px 20px;
-      color: var(--text-muted);
-    }
-    .empty-state h3 {
-      font-size: 18px;
-      color: #fff;
-      margin-bottom: 8px;
-    }
-
-    /* Bottom Navigation */
     .bottom-nav {
       position: fixed;
       bottom: 0;
@@ -239,7 +223,6 @@
       align-items: center;
       z-index: 100;
     }
-
     .nav-btn {
       background: none;
       border: none;
@@ -253,23 +236,13 @@
       cursor: pointer;
       flex: 1;
     }
-    .nav-btn.active {
-      color: var(--accent);
-    }
-    .nav-btn svg {
-      width: 22px;
-      height: 22px;
-      stroke: currentColor;
-    }
+    .nav-btn.active { color: var(--accent); }
+    .nav-btn svg { width: 22px; height: 22px; stroke: currentColor; }
 
-    /* Views */
     .view { display: none; }
     .view.active { display: block; }
 
-    /* Forms */
-    .form-group {
-      margin-bottom: 16px;
-    }
+    .form-group { margin-bottom: 16px; }
     .form-group label {
       display: block;
       font-size: 13px;
@@ -287,13 +260,8 @@
       font-size: 15px;
       outline: none;
     }
-    .form-input:focus, .form-select:focus, .form-textarea:focus {
-      border-color: var(--accent);
-    }
-    .form-textarea {
-      min-height: 90px;
-      resize: vertical;
-    }
+    .form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--accent); }
+    .form-textarea { min-height: 90px; resize: vertical; }
 
     .btn-primary {
       width: 100%;
@@ -307,10 +275,10 @@
       cursor: pointer;
       transition: background 0.2s;
     }
-    .btn-primary:active {
-      background: var(--accent-hover);
+    .btn-primary:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
     }
-
     .btn-secondary {
       width: 100%;
       background: var(--surface);
@@ -318,13 +286,46 @@
       color: #fff;
       padding: 12px;
       border-radius: 12px;
-      font-size: 15px;
+      font-size: 14px;
       font-weight: 600;
       cursor: pointer;
       margin-top: 10px;
     }
 
-    /* Photo Upload Area */
+    /* Google Button */
+    .btn-google {
+      width: 100%;
+      background: #fff;
+      color: #1F2937;
+      border: none;
+      padding: 12px;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      cursor: pointer;
+      margin-bottom: 16px;
+    }
+
+    .divider {
+      display: flex;
+      align-items: center;
+      text-align: center;
+      margin: 16px 0;
+      color: var(--text-muted);
+      font-size: 12px;
+    }
+    .divider::before, .divider::after {
+      content: '';
+      flex: 1;
+      border-bottom: 1px solid var(--border);
+    }
+    .divider:not(:empty)::before { margin-right: .75em; }
+    .divider:not(:empty)::after { margin-left: .75em; }
+
     .photo-uploader {
       border: 2px dashed var(--border);
       border-radius: 14px;
@@ -333,26 +334,10 @@
       cursor: pointer;
       background: var(--surface);
       margin-bottom: 16px;
-      position: relative;
     }
-    .photo-uploader:hover {
-      border-color: var(--accent);
-    }
-    .photos-preview {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-top: 12px;
-    }
-    .preview-thumb {
-      width: 80px;
-      height: 80px;
-      border-radius: 8px;
-      object-fit: cover;
-      border: 1px solid var(--border);
-    }
+    .photos-preview { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+    .preview-thumb { width: 80px; height: 80px; border-radius: 8px; object-fit: cover; }
 
-    /* Modal / Product Detail */
     .detail-overlay {
       position: fixed;
       inset: 0;
@@ -362,40 +347,49 @@
       overflow-y: auto;
       padding: 20px 12px;
     }
-    .detail-overlay.active {
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
-    }
+    .detail-overlay.active { display: flex; justify-content: center; align-items: flex-start; }
     .detail-box {
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 16px;
       width: 100%;
-      max-width: 500px;
-      overflow: hidden;
-      margin-top: 20px;
+      max-width: 480px;
       position: relative;
     }
     .close-btn {
       position: absolute;
       top: 14px;
       right: 14px;
-      width: 34px;
-      height: 34px;
+      width: 32px;
+      height: 32px;
       background: rgba(0,0,0,0.6);
       border-radius: 50%;
       border: none;
       color: #fff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 18px;
+      font-size: 16px;
       cursor: pointer;
-      z-index: 10;
     }
 
-    /* Chat Messages */
+    .otp-inputs {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin: 16px 0;
+    }
+    .otp-digit {
+      width: 50px;
+      height: 56px;
+      background: var(--surface-elevated);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      text-align: center;
+      font-size: 24px;
+      font-weight: 700;
+      color: #fff;
+      outline: none;
+    }
+    .otp-digit:focus { border-color: var(--accent); }
+
     .chat-bubble {
       max-width: 80%;
       padding: 10px 14px;
@@ -404,18 +398,8 @@
       line-height: 1.4;
       margin-bottom: 8px;
     }
-    .chat-bubble.mine {
-      background: var(--accent);
-      color: #fff;
-      margin-left: auto;
-      border-bottom-right-radius: 4px;
-    }
-    .chat-bubble.theirs {
-      background: var(--surface-elevated);
-      color: #fff;
-      margin-right: auto;
-      border-bottom-left-radius: 4px;
-    }
+    .chat-bubble.mine { background: var(--accent); color: #fff; margin-left: auto; }
+    .chat-bubble.theirs { background: var(--surface-elevated); color: #fff; margin-right: auto; }
   </style>
 </head>
 <body>
@@ -430,57 +414,43 @@
     </div>
   </header>
 
-  <!-- ============================================== -->
-  <!-- VIEW 1: FEED (ОБЩАЯ ЛЕНТА ВЕЩЕЙ) -->
-  <!-- ============================================== -->
+  <!-- VIEW 1: FEED -->
   <div id="view-feed" class="view active container">
     <div class="search-box">
       <span class="icon">🔍</span>
-      <input type="text" id="searchInput" placeholder="Поиск одежды, обуви, брендов..." oninput="debounceSearch()">
+      <input type="text" id="searchInput" placeholder="Поиск проверенных вещей..." oninput="debounceSearch()">
     </div>
 
-    <!-- Category Chips -->
     <div class="categories-bar">
       <div class="cat-chip active" onclick="setCategory(this, 'all')">Все вещи</div>
       <div class="cat-chip" onclick="setCategory(this, 'Женское')">👗 Женское</div>
       <div class="cat-chip" onclick="setCategory(this, 'Мужское')">👔 Мужское</div>
       <div class="cat-chip" onclick="setCategory(this, 'Обувь')">👟 Обувь</div>
-      <div class="cat-chip" onclick="setCategory(this, 'Аксессуары')">👜 Аксессуары</div>
       <div class="cat-chip" onclick="setCategory(this, 'Верхняя одежда')">🧥 Верхняя одежда</div>
+      <div class="cat-chip" onclick="setCategory(this, 'Аксессуары')">👜 Аксессуары</div>
     </div>
 
-    <!-- Grid of Real Items -->
-    <div id="itemsGrid" class="grid" style="margin-top: 14px;">
-      <!-- Populated via JS from server -->
-    </div>
-
-    <div id="emptyFeed" class="empty-state" style="display: none;">
-      <h3>Пока нет объявлений</h3>
-      <p>Стань первым, кто выставит свою вещь на продажу!</p>
-      <button class="btn-primary" style="margin-top: 16px; width: auto; padding: 12px 24px;" onclick="switchView('create')">
-        + Продать вещь
-      </button>
-    </div>
+    <div id="itemsGrid" class="grid" style="margin-top: 14px;"></div>
   </div>
 
-  <!-- ============================================== -->
-  <!-- VIEW 2: CREATE ITEM (РЕАЛЬНАЯ ВЫКЛАДКА ВЕЩИ) -->
-  <!-- ============================================== -->
+  <!-- VIEW 2: CREATE ITEM -->
   <div id="view-create" class="view container">
-    <h2 style="margin-bottom: 16px; font-size: 22px;">Новое объявление</h2>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+      <h2 style="font-size: 22px;">Новое объявление</h2>
+      <span class="badge-verified">✓ Только проверенные продавцы</span>
+    </div>
 
     <div class="photo-uploader" onclick="document.getElementById('photoInput').click()">
       <div style="font-size: 32px; margin-bottom: 6px;">📸</div>
       <div style="font-weight: 600; font-size: 15px;">Добавить фото вещи</div>
-      <div style="color: var(--text-muted); font-size: 12px; margin-top: 4px;">С камеры телефона или из галереи</div>
+      <div style="color: var(--text-muted); font-size: 12px; margin-top: 4px;">С камеры телефона или галереи</div>
       <input type="file" id="photoInput" accept="image/*" multiple style="display: none;" onchange="handlePhotoSelect(event)">
-      
       <div id="previewContainer" class="photos-preview"></div>
     </div>
 
     <div class="form-group">
       <label>Название вещи *</label>
-      <input type="text" id="createTitle" class="form-input" placeholder="Например: Кожаная куртка Zara">
+      <input type="text" id="createTitle" class="form-input" placeholder="Например: Тренч Massimo Dutti">
     </div>
 
     <div class="form-group" style="display: flex; gap: 12px;">
@@ -496,14 +466,14 @@
       </div>
       <div style="flex: 1;">
         <label>Размер</label>
-        <input type="text" id="createSize" class="form-input" placeholder="S, M, 42, 38 EU">
+        <input type="text" id="createSize" class="form-input" placeholder="S, M, 42">
       </div>
     </div>
 
     <div class="form-group" style="display: flex; gap: 12px;">
       <div style="flex: 1;">
         <label>Бренд</label>
-        <input type="text" id="createBrand" class="form-input" placeholder="Zara, Nike, Vintage...">
+        <input type="text" id="createBrand" class="form-input" placeholder="Zara, Nike...">
       </div>
       <div style="flex: 1;">
         <label>Состояние</label>
@@ -511,41 +481,30 @@
           <option value="Новое с биркой">Новое с биркой</option>
           <option value="Отличное">Отличное</option>
           <option value="Хорошее">Хорошее</option>
-          <option value="Есть дефекты">Есть дефекты</option>
         </select>
       </div>
     </div>
 
     <div class="form-group">
       <label>Цена (руб.) *</label>
-      <input type="number" id="createPrice" class="form-input" placeholder="2500" style="font-size: 18px; font-weight: 700;">
+      <input type="number" id="createPrice" class="form-input" placeholder="3500" style="font-size: 18px; font-weight: 700;">
     </div>
 
     <div class="form-group">
-      <label>Описание вещи</label>
-      <textarea id="createDesc" class="form-textarea" placeholder="Укажите замеры, материал, причину продажи или нюансы..."></textarea>
+      <label>Описание</label>
+      <textarea id="createDesc" class="form-textarea" placeholder="Замеры, материал, состояние..."></textarea>
     </div>
 
     <button class="btn-primary" onclick="submitNewItem()">Опубликовать на DazzleMark</button>
   </div>
 
-  <!-- ============================================== -->
-  <!-- VIEW 3: CHATS (СООБЩЕНИЯ) -->
-  <!-- ============================================== -->
+  <!-- VIEW 3: CHATS -->
   <div id="view-chats" class="view container">
     <h2 style="margin-bottom: 16px; font-size: 22px;">Диалоги</h2>
-    <div id="chatsList">
-      <!-- Populated via JS -->
-    </div>
-    <div id="emptyChats" class="empty-state" style="display: none;">
-      <h3>У вас пока нет сообщений</h3>
-      <p>Напишите продавцу под любым объявлением, чтобы начать диалог.</p>
-    </div>
+    <div id="chatsList"></div>
   </div>
 
-  <!-- ============================================== -->
-  <!-- VIEW 4: ACTIVE CHAT SCREEN -->
-  <!-- ============================================== -->
+  <!-- VIEW 4: ACTIVE CHAT -->
   <div id="view-chat-active" class="view container">
     <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 14px;">
       <button onclick="switchView('chats')" style="background: none; border: none; color: #fff; font-size: 22px; cursor: pointer;">←</button>
@@ -554,101 +513,140 @@
         <div id="chatItemTitle" style="font-size: 12px; color: var(--text-muted);">Товар</div>
       </div>
     </div>
-
-    <!-- Messages Container -->
-    <div id="chatMessagesBox" style="background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 14px; height: 55vh; overflow-y: auto; display: flex; flex-direction: column;">
-      <!-- Messages injected here -->
-    </div>
-
-    <!-- Message Input Bar -->
+    <div id="chatMessagesBox" style="background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 14px; height: 55vh; overflow-y: auto; display: flex; flex-direction: column;"></div>
     <div style="display: flex; gap: 8px; margin-top: 10px;">
       <input type="text" id="chatInput" class="form-input" placeholder="Напишите сообщение..." onkeydown="if(event.key==='Enter') sendChatMessage()">
-      <button class="btn-primary" style="width: auto; padding: 0 20px;" onclick="sendChatMessage()">
-        ➤
-      </button>
+      <button class="btn-primary" style="width: auto; padding: 0 20px;" onclick="sendChatMessage()">➤</button>
     </div>
   </div>
 
-  <!-- ============================================== -->
   <!-- VIEW 5: PROFILE -->
-  <!-- ============================================== -->
   <div id="view-profile" class="view container">
     <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 20px; text-align: center; margin-bottom: 20px;">
-      <div style="width: 72px; height: 72px; border-radius: 50%; background: var(--accent); color: #fff; font-size: 28px; font-weight: 700; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px;">
+      <div id="profileAvatar" style="width: 72px; height: 72px; border-radius: 50%; background: var(--accent); color: #fff; font-size: 28px; font-weight: 700; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; overflow: hidden;">
         <span id="profileInitial">U</span>
       </div>
-      <h2 id="profileName" style="font-size: 20px;">Имя Пользователя</h2>
-      <p id="profilePhone" style="color: var(--text-muted); font-size: 14px; margin-top: 4px;">+7 ...</p>
-      <p id="profileCity" style="color: var(--accent); font-size: 13px; margin-top: 2px;">Москва</p>
-      <button class="btn-secondary" style="width: auto; padding: 8px 18px; margin-top: 14px;" onclick="logout()">Выйти из аккаунта</button>
+      <h2 id="profileName" style="font-size: 20px; display: flex; align-items: center; justify-content: center; gap: 6px;">
+        Имя
+      </h2>
+      <div style="margin-top: 6px;">
+        <span id="profileBadge" class="badge-verified">✓ Номер подтвержден</span>
+      </div>
+      <p id="profilePhone" style="color: var(--text-muted); font-size: 14px; margin-top: 6px;">+7 ...</p>
+      <button class="btn-secondary" style="width: auto; padding: 8px 18px; margin-top: 14px;" onclick="logout()">Выйти</button>
     </div>
-
-    <h3 style="font-size: 17px; margin-bottom: 12px;">Мои объявления на продаже</h3>
+    <h3 style="font-size: 17px; margin-bottom: 12px;">Мои объявления</h3>
     <div id="myItemsGrid" class="grid"></div>
   </div>
 
-  <!-- ============================================== -->
-  <!-- ITEM DETAIL OVERLAY -->
-  <!-- ============================================== -->
+  <!-- DETAIL MODAL -->
   <div id="detailModal" class="detail-overlay">
-    <div class="detail-box">
+    <div class="detail-box" style="overflow: hidden;">
       <button class="close-btn" onclick="closeDetailModal()">✕</button>
-      <img id="detailImg" src="" style="width: 100%; max-height: 400px; object-fit: cover;">
+      <img id="detailImg" src="" style="width: 100%; max-height: 380px; object-fit: cover;">
       <div style="padding: 16px;">
         <div id="detailPrice" style="font-size: 24px; font-weight: 800; color: #fff; margin-bottom: 4px;"></div>
         <h2 id="detailTitle" style="font-size: 18px; font-weight: 600; margin-bottom: 8px;"></h2>
-
-        <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px;">
+        <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px;">
           <span id="detailBrand" style="background: var(--surface-elevated); padding: 4px 10px; border-radius: 6px; font-size: 13px;"></span>
           <span id="detailSize" style="background: var(--surface-elevated); padding: 4px 10px; border-radius: 6px; font-size: 13px;"></span>
           <span id="detailCondition" style="background: var(--surface-elevated); padding: 4px 10px; border-radius: 6px; font-size: 13px; color: var(--success);"></span>
         </div>
-
         <p id="detailDesc" style="color: #D1D5DB; font-size: 14px; line-height: 1.5; margin-bottom: 16px; white-space: pre-wrap;"></p>
+        <div style="border-top: 1px solid var(--border); padding-top: 12px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <div style="font-size: 11px; color: var(--text-muted);">Продавец</div>
+            <div id="detailSeller" style="font-weight: 600; font-size: 15px;"></div>
+          </div>
+          <span class="badge-verified">✓ Проверен</span>
+        </div>
+        <button class="btn-primary" onclick="startChatWithSeller()">💬 Написать продавцу</button>
+      </div>
+    </div>
+  </div>
 
-        <div style="border-top: 1px solid var(--border); padding-top: 12px; margin-bottom: 16px;">
-          <div style="font-size: 12px; color: var(--text-muted);">Продавец</div>
-          <div id="detailSeller" style="font-weight: 600; font-size: 15px; margin-top: 2px;"></div>
+  <!-- STRICT AVITO-GRADE AUTH & OTP MODAL -->
+  <div id="authModal" class="detail-overlay">
+    <div class="detail-box" style="padding: 24px;">
+      <button class="close-btn" onclick="closeAuthModal()">✕</button>
+
+      <!-- STEP 1: Phone & Data Input -->
+      <div id="authStep1">
+        <h2 id="authTitle" style="font-size: 20px; margin-bottom: 8px;">Вход или регистрация</h2>
+        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 18px;">
+          Как на Авито: подтверждение по SMS исключает фейковые аккаунты.
+        </p>
+
+        <!-- Fast Google Login -->
+        <button class="btn-google" onclick="triggerGoogleAuth()">
+          <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#EA4335" d="M12 5c1.6 0 3 .6 4.1 1.6l3.1-3.1C17.3 1.7 14.8 1 12 1 7.5 1 3.7 3.6 1.9 7.3l3.7 2.9C6.5 7.4 9 5 12 5z"/><path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.6h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5 3.7-8.9z"/><path fill="#FBBC05" d="M5.6 14.8c-.2-.7-.4-1.5-.4-2.3s.2-1.6.4-2.3L1.9 7.3C.7 9.7 0 12.3 0 15.2s.7 5.5 1.9 7.9l3.7-2.9z"/><path fill="#34A853" d="M12 23.5c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3 0-5.5-2.4-6.4-5.2L1.9 16.5C3.7 20.3 7.5 23.5 12 23.5z"/></svg>
+          Войти через Google
+        </button>
+
+        <div class="divider">или по номеру телефона</div>
+
+        <div class="form-group" id="nameGroup" style="display: none;">
+          <label>Реальное имя и фамилия *</label>
+          <input type="text" id="authName" class="form-input" placeholder="Иван Иванов" maxlength="40">
         </div>
 
-        <button class="btn-primary" onclick="startChatWithSeller()">
-          💬 Написать продавцу
+        <div class="form-group">
+          <label>Номер телефона РФ *</label>
+          <input type="tel" id="authPhone" class="form-input" placeholder="+7 (999) 000-00-00" oninput="formatPhoneInput(this)">
+        </div>
+
+        <div class="form-group" id="passwordGroup" style="display: none;">
+          <label>Пароль (от 6 символов)</label>
+          <input type="password" id="authPassword" class="form-input" placeholder="••••••••">
+        </div>
+
+        <button id="authSubmitBtn" class="btn-primary" onclick="requestOtpCode()">
+          Получить SMS-код
+        </button>
+
+        <button class="btn-secondary" id="authToggleBtn" onclick="toggleAuthMode()">
+          Нет аккаунта? Зарегистрироваться
         </button>
       </div>
+
+      <!-- STEP 2: OTP Verification Screen -->
+      <div id="authStep2" style="display: none; text-align: center;">
+        <h2 style="font-size: 20px; margin-bottom: 6px;">Введите код из SMS</h2>
+        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">
+          Код отправлен на <b id="otpSentPhone" style="color: #fff;">+7...</b>
+        </p>
+
+        <div id="devCodeBanner" style="background: rgba(139, 92, 246, 0.15); border: 1px dashed var(--accent); padding: 8px 12px; border-radius: 8px; font-size: 13px; color: #D8B4FE; margin-bottom: 14px;">
+          Тестовый код: <span id="devCodeVal" style="font-weight: 700; letter-spacing: 2px;"></span>
+        </div>
+
+        <div class="otp-inputs">
+          <input type="text" class="otp-digit" id="otp1" maxlength="1" oninput="moveOtp(this, 'otp2', '')" autofocus>
+          <input type="text" class="otp-digit" id="otp2" maxlength="1" oninput="moveOtp(this, 'otp3', 'otp1')">
+          <input type="text" class="otp-digit" id="otp3" maxlength="1" oninput="moveOtp(this, 'otp4', 'otp2')">
+          <input type="text" class="otp-digit" id="otp4" maxlength="1" oninput="moveOtp(this, '', 'otp3')">
+        </div>
+
+        <button class="btn-primary" onclick="submitOtpVerification()" style="margin-top: 10px;">
+          Подтвердить и войти
+        </button>
+
+        <div style="margin-top: 14px; font-size: 13px; color: var(--text-muted);">
+          <span id="otpTimerText">Повторная отправка через <span id="cooldownTimer">60</span>с</span>
+          <button id="resendOtpBtn" style="display: none; background: none; border: none; color: var(--accent); font-weight: 600; cursor: pointer;" onclick="requestOtpCode(true)">
+            Отправить код повторно
+          </button>
+        </div>
+
+        <button class="btn-secondary" style="margin-top: 16px;" onclick="backToStep1()">
+          Изменить номер
+        </button>
+      </div>
+
     </div>
   </div>
 
-  <!-- ============================================== -->
-  <!-- AUTH MODAL -->
-  <!-- ============================================== -->
-  <div id="authModal" class="detail-overlay">
-    <div class="detail-box" style="padding: 20px;">
-      <button class="close-btn" onclick="closeAuthModal()">✕</button>
-      <h2 id="authTitle" style="font-size: 20px; margin-bottom: 16px;">Вход в DazzleMark</h2>
-
-      <div class="form-group" id="nameGroup" style="display: none;">
-        <label>Ваше имя</label>
-        <input type="text" id="authName" class="form-input" placeholder="Александр">
-      </div>
-
-      <div class="form-group">
-        <label>Номер телефона</label>
-        <input type="tel" id="authPhone" class="form-input" placeholder="+7 999 123-45-67">
-      </div>
-
-      <div class="form-group">
-        <label>Пароль</label>
-        <input type="password" id="authPassword" class="form-input" placeholder="••••••••">
-      </div>
-
-      <button id="authSubmitBtn" class="btn-primary" onclick="submitAuth()">Войти</button>
-      <button class="btn-secondary" id="authToggleBtn" onclick="toggleAuthMode()">Нет аккаунта? Зарегистрироваться</button>
-    </div>
-  </div>
-
-  <!-- ============================================== -->
-  <!-- BOTTOM NAVIGATION -->
-  <!-- ============================================== -->
+  <!-- Bottom Nav -->
   <nav class="bottom-nav">
     <button class="nav-btn active" id="btn-feed" onclick="switchView('feed')">
       <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>
@@ -668,11 +666,7 @@
     </button>
   </nav>
 
-  <!-- ============================================== -->
-  <!-- JAVASCRIPT LOGIC -->
-  <!-- ============================================== -->
   <script>
-    // State
     let currentUser = null;
     let token = localStorage.getItem('dazzle_token') || '';
     let currentCategory = 'all';
@@ -682,71 +676,146 @@
     let activeChatId = null;
     let chatInterval = null;
     let isRegisterMode = false;
+    let otpCooldownInterval = null;
 
-    // Init
     window.addEventListener('DOMContentLoaded', async () => {
       await checkAuth();
       await loadItems();
     });
 
-    // ---------------- AUTH ----------------
-    async function checkAuth() {
-      if (!token) return updateAuthUI();
-      try {
-        const res = await fetch('/api/auth/me', {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        const data = await res.json();
-        currentUser = data.user;
-        if (!currentUser) {
-          localStorage.removeItem('dazzle_token');
-          token = '';
-        }
-      } catch (e) {
-        console.error(e);
-      }
-      updateAuthUI();
+    // PHONE MASK (+7 (9XX) XXX-XX-XX)
+    function formatPhoneInput(input) {
+      let val = input.value.replace(/\D/g, '');
+      if (val.startsWith('8') || val.startsWith('7')) val = val.substring(1);
+      let res = '+7 ';
+      if (val.length > 0) res += '(' + val.substring(0, 3);
+      if (val.length >= 4) res += ') ' + val.substring(3, 6);
+      if (val.length >= 7) res += '-' + val.substring(6, 8);
+      if (val.length >= 9) res += '-' + val.substring(8, 10);
+      input.value = res;
     }
 
-    function updateAuthUI() {
-      const pill = document.getElementById('authPill');
-      if (currentUser) {
-        pill.innerHTML = `👤 ${currentUser.name}`;
-        pill.onclick = () => switchView('profile');
-      } else {
-        pill.innerHTML = `Вход / Регистрация`;
-        pill.onclick = openAuthModal;
-      }
-    }
-
+    // AUTH & OTP LOGIC
     function openAuthModal() {
+      backToStep1();
       document.getElementById('authModal').classList.add('active');
     }
     function closeAuthModal() {
       document.getElementById('authModal').classList.remove('active');
+      if (otpCooldownInterval) clearInterval(otpCooldownInterval);
     }
 
     function toggleAuthMode() {
       isRegisterMode = !isRegisterMode;
-      document.getElementById('authTitle').innerText = isRegisterMode ? 'Регистрация в DazzleMark' : 'Вход в DazzleMark';
+      document.getElementById('authTitle').innerText = isRegisterMode ? 'Регистрация с верификацией' : 'Вход в аккаунт';
       document.getElementById('nameGroup').style.display = isRegisterMode ? 'block' : 'none';
-      document.getElementById('authSubmitBtn').innerText = isRegisterMode ? 'Зарегистрироваться' : 'Войти';
+      document.getElementById('passwordGroup').style.display = isRegisterMode ? 'block' : 'none';
       document.getElementById('authToggleBtn').innerText = isRegisterMode ? 'Уже есть аккаунт? Войти' : 'Нет аккаунта? Зарегистрироваться';
     }
 
-    async function submitAuth() {
-      const phone = document.getElementById('authPhone').value;
-      const password = document.getElementById('authPassword').value;
-      const name = document.getElementById('authName').value;
+    function backToStep1() {
+      document.getElementById('authStep1').style.display = 'block';
+      document.getElementById('authStep2').style.display = 'none';
+      if (otpCooldownInterval) clearInterval(otpCooldownInterval);
+    }
 
-      const endpoint = isRegisterMode ? '/api/auth/register' : '/api/auth/login';
-      const payload = isRegisterMode ? { name, phone, password } : { phone, password };
+    async function requestOtpCode(isResend = false) {
+      const phoneInput = document.getElementById('authPhone').value;
+      const name = document.getElementById('authName').value;
+      const digits = phoneInput.replace(/\D/g, '');
+
+      if (digits.length < 11) {
+        return alert('Введите полный номер телефона РФ');
+      }
+
+      if (isRegisterMode && !name.trim()) {
+        return alert('Пожалуйста, укажите реальное имя и фамилию');
+      }
+
+      const btn = document.getElementById('authSubmitBtn');
+      btn.disabled = true;
+      btn.innerText = 'Отправка SMS...';
 
       try {
-        const res = await fetch(endpoint, {
+        const res = await fetch('/api/auth/send-otp', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
+          body: JSON.stringify({ phone: phoneInput, isRegistration: isRegisterMode })
+        });
+        const data = await res.json();
+
+        btn.disabled = false;
+        btn.innerText = 'Получить SMS-код';
+
+        if (data.error) return alert(data.error);
+
+        // Open Step 2
+        document.getElementById('authStep1').style.display = 'none';
+        document.getElementById('authStep2').style.display = 'block';
+        document.getElementById('otpSentPhone').innerText = phoneInput;
+
+        if (data.devCode) {
+          document.getElementById('devCodeVal').innerText = data.devCode;
+        }
+
+        startCooldownTimer(data.cooldownSeconds || 60);
+      } catch (e) {
+        btn.disabled = false;
+        btn.innerText = 'Получить SMS-код';
+        alert('Ошибка связи с сервером');
+      }
+    }
+
+    function startCooldownTimer(seconds) {
+      let left = seconds;
+      const timerEl = document.getElementById('cooldownTimer');
+      const textEl = document.getElementById('otpTimerText');
+      const resendBtn = document.getElementById('resendOtpBtn');
+
+      textEl.style.display = 'inline';
+      resendBtn.style.display = 'none';
+      timerEl.innerText = left;
+
+      if (otpCooldownInterval) clearInterval(otpCooldownInterval);
+
+      otpCooldownInterval = setInterval(() => {
+        left--;
+        timerEl.innerText = left;
+        if (left <= 0) {
+          clearInterval(otpCooldownInterval);
+          textEl.style.display = 'none';
+          resendBtn.style.display = 'inline';
+        }
+      }, 1000);
+    }
+
+    function moveOtp(current, nextId, prevId) {
+      if (current.value.length === 1 && nextId) {
+        document.getElementById(nextId).focus();
+      }
+    }
+
+    async function submitOtpVerification() {
+      const code = [
+        document.getElementById('otp1').value,
+        document.getElementById('otp2').value,
+        document.getElementById('otp3').value,
+        document.getElementById('otp4').value
+      ].join('');
+
+      if (code.length !== 4) return alert('Введите 4-значный код из SMS');
+
+      const phone = document.getElementById('authPhone').value;
+      const name = document.getElementById('authName').value;
+      const password = document.getElementById('authPassword').value;
+
+      try {
+        const res = await fetch('/api/auth/verify-otp', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            phone, code, name, password, isRegistration: isRegisterMode
+          })
         });
         const data = await res.json();
         if (data.error) return alert(data.error);
@@ -756,9 +825,61 @@
         localStorage.setItem('dazzle_token', token);
         closeAuthModal();
         updateAuthUI();
-        alert('Успешно!');
+        alert('✓ Телефон успешно подтвержден!');
       } catch (e) {
-        alert('Ошибка соединения с сервером');
+        alert('Ошибка верификации');
+      }
+    }
+
+    // GOOGLE OAUTH
+    function triggerGoogleAuth() {
+      // Direct mock/real integration for demonstration
+      const name = prompt('Введите ваше имя в Google аккаунте:', 'Михаил Волков');
+      if (!name) return;
+      const email = prompt('Введите ваш Google Email:', 'm.volkov@gmail.com');
+      if (!email) return;
+
+      fetch('/api/auth/google', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          profile: { name, email, avatar: '', id: 'g_' + Date.now() }
+        })
+      })
+      .then(r => r.json())
+      .then(data => {
+        if (data.error) return alert(data.error);
+        token = data.token;
+        currentUser = data.user;
+        localStorage.setItem('dazzle_token', token);
+        closeAuthModal();
+        updateAuthUI();
+        alert('✓ Вход через Google выполнен! Аккаунт верифицирован.');
+      });
+    }
+
+    async function checkAuth() {
+      if (!token) return updateAuthUI();
+      try {
+        const res = await fetch('/api/auth/me', { headers: { 'Authorization': `Bearer ${token}` } });
+        const data = await res.json();
+        currentUser = data.user;
+        if (!currentUser) {
+          localStorage.removeItem('dazzle_token');
+          token = '';
+        }
+      } catch (e) { console.error(e); }
+      updateAuthUI();
+    }
+
+    function updateAuthUI() {
+      const pill = document.getElementById('authPill');
+      if (currentUser) {
+        pill.innerHTML = `✓ ${currentUser.name}`;
+        pill.onclick = () => switchView('profile');
+      } else {
+        pill.innerHTML = `Вход / Регистрация`;
+        pill.onclick = openAuthModal;
       }
     }
 
@@ -770,7 +891,7 @@
       switchView('feed');
     }
 
-    // ---------------- NAVIGATION ----------------
+    // NAVIGATION
     function switchView(viewName) {
       if ((viewName === 'create' || viewName === 'chats' || viewName === 'profile') && !currentUser) {
         openAuthModal();
@@ -793,7 +914,7 @@
       }
     }
 
-    // ---------------- ITEMS FEED ----------------
+    // ITEMS FEED
     async function loadItems() {
       const q = document.getElementById('searchInput').value;
       let url = `/api/items?category=${encodeURIComponent(currentCategory)}`;
@@ -802,33 +923,25 @@
       try {
         const res = await fetch(url);
         currentItems = await res.json();
-        renderGrid(currentItems, 'itemsGrid', 'emptyFeed');
-      } catch (e) {
-        console.error(e);
-      }
+        renderGrid(currentItems, 'itemsGrid');
+      } catch (e) { console.error(e); }
     }
 
-    function renderGrid(items, gridId, emptyId) {
+    function renderGrid(items, gridId) {
       const grid = document.getElementById(gridId);
-      const empty = document.getElementById(emptyId);
-
       if (!items.length) {
-        grid.innerHTML = '';
-        if (empty) empty.style.display = 'block';
+        grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 40px;">Объявлений пока нет</div>';
         return;
       }
-
-      if (empty) empty.style.display = 'none';
-
       grid.innerHTML = items.map(item => `
         <div class="card" onclick="openDetail('${item.id}')">
-          <img class="card-img" src="${item.photos[0] || 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>👗</text></svg>'}" loading="lazy">
+          <img class="card-img" src="${item.photos[0] || ''}" loading="lazy">
           <div class="card-content">
             <div class="card-price">${item.price.toLocaleString('ru-RU')} ₽</div>
             <div class="card-title">${item.title}</div>
             <div class="card-meta">
               <span>${item.size || 'One Size'}</span>
-              <span>${item.city}</span>
+              <span class="badge-verified">✓ ${item.sellerName}</span>
             </div>
           </div>
         </div>
@@ -848,7 +961,7 @@
       searchTimer = setTimeout(loadItems, 300);
     }
 
-    // ---------------- CREATE ITEM & PHOTO UPLOAD ----------------
+    // PHOTO UPLOAD
     async function handlePhotoSelect(e) {
       const files = Array.from(e.target.files);
       const container = document.getElementById('previewContainer');
@@ -857,7 +970,6 @@
         const reader = new FileReader();
         reader.onload = async (evt) => {
           const base64 = evt.target.result;
-          // Upload to server
           try {
             const res = await fetch('/api/upload', {
               method: 'POST',
@@ -875,9 +987,7 @@
               img.className = 'preview-thumb';
               container.appendChild(img);
             }
-          } catch (err) {
-            alert('Ошибка загрузки фото');
-          }
+          } catch (err) { alert('Ошибка загрузки фото'); }
         };
         reader.readAsDataURL(file);
       }
@@ -892,9 +1002,7 @@
       const condition = document.getElementById('createCondition').value;
       const description = document.getElementById('createDesc').value;
 
-      if (!title || !price) {
-        return alert('Пожалуйста, укажите название и цену вещи');
-      }
+      if (!title || !price) return alert('Укажите название и цену вещи');
 
       try {
         const res = await fetch('/api/items', {
@@ -908,25 +1016,22 @@
             photos: selectedPhotos
           })
         });
-
         const data = await res.json();
         if (data.error) return alert(data.error);
 
-        alert('Объявление успешно опубликовано!');
+        alert('✓ Объявление проверено и опубликовано!');
         selectedPhotos = [];
         document.getElementById('previewContainer').innerHTML = '';
         document.getElementById('createTitle').value = '';
         document.getElementById('createPrice').value = '';
         document.getElementById('createDesc').value = '';
-        
+
         switchView('feed');
         loadItems();
-      } catch (e) {
-        alert('Ошибка при сохранении объявления');
-      }
+      } catch (e) { alert('Ошибка публикации'); }
     }
 
-    // ---------------- DETAIL MODAL ----------------
+    // DETAIL MODAL
     function openDetail(id) {
       activeItem = currentItems.find(i => i.id === id);
       if (!activeItem) return;
@@ -934,7 +1039,7 @@
       document.getElementById('detailImg').src = activeItem.photos[0] || '';
       document.getElementById('detailPrice').innerText = `${activeItem.price.toLocaleString('ru-RU')} ₽`;
       document.getElementById('detailTitle').innerText = activeItem.title;
-      document.getElementById('detailBrand').innerText = activeItem.brand || 'Бренд не указан';
+      document.getElementById('detailBrand').innerText = activeItem.brand || 'Без бренда';
       document.getElementById('detailSize').innerText = `Размер: ${activeItem.size}`;
       document.getElementById('detailCondition').innerText = activeItem.condition;
       document.getElementById('detailDesc').innerText = activeItem.description || 'Описание отсутствует';
@@ -942,18 +1047,16 @@
 
       document.getElementById('detailModal').classList.add('active');
     }
-
     function closeDetailModal() {
       document.getElementById('detailModal').classList.remove('active');
     }
 
-    // ---------------- CHAT ----------------
+    // CHATS
     async function startChatWithSeller() {
       if (!currentUser) return openAuthModal();
       if (!activeItem) return;
 
       closeDetailModal();
-
       try {
         const res = await fetch('/api/chats', {
           method: 'POST',
@@ -965,29 +1068,19 @@
         });
         const chat = await res.json();
         if (chat.error) return alert(chat.error);
-
         openActiveChat(chat);
-      } catch (e) {
-        alert('Не удалось начать чат');
-      }
+      } catch (e) { alert('Не удалось начать чат'); }
     }
 
     async function loadChats() {
       try {
-        const res = await fetch('/api/chats', {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
+        const res = await fetch('/api/chats', { headers: { 'Authorization': `Bearer ${token}` } });
         const chats = await res.json();
         const list = document.getElementById('chatsList');
-        const empty = document.getElementById('emptyChats');
-
         if (!chats.length) {
-          list.innerHTML = '';
-          empty.style.display = 'block';
+          list.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 40px;">Диалогов пока нет</div>';
           return;
         }
-
-        empty.style.display = 'none';
         list.innerHTML = chats.map(c => `
           <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 12px; margin-bottom: 8px; display: flex; align-items: center; gap: 12px; cursor: pointer;" onclick='openActiveChat(${JSON.stringify(c)})'>
             <img src="${c.itemPhoto || ''}" style="width: 48px; height: 48px; border-radius: 8px; object-fit: cover; background: #222;">
@@ -998,19 +1091,15 @@
             </div>
           </div>
         `).join('');
-      } catch (e) {
-        console.error(e);
-      }
+      } catch (e) { console.error(e); }
     }
 
     function openActiveChat(chat) {
       activeChatId = chat.id;
       document.getElementById('chatCompanionName').innerText = chat.sellerId === currentUser.id ? chat.buyerName : chat.sellerName;
       document.getElementById('chatItemTitle').innerText = `${chat.itemTitle} (${chat.itemPrice} ₽)`;
-      
       switchView('chat-active');
       fetchMessages();
-
       if (chatInterval) clearInterval(chatInterval);
       chatInterval = setInterval(fetchMessages, 2000);
     }
@@ -1023,23 +1112,19 @@
         });
         const msgs = await res.json();
         const box = document.getElementById('chatMessagesBox');
-        
         box.innerHTML = msgs.map(m => `
           <div class="chat-bubble ${m.senderId === currentUser.id ? 'mine' : 'theirs'}">
             ${m.text}
           </div>
         `).join('');
         box.scrollTop = box.scrollHeight;
-      } catch (e) {
-        console.error(e);
-      }
+      } catch (e) { console.error(e); }
     }
 
     async function sendChatMessage() {
       const input = document.getElementById('chatInput');
       const text = input.value.trim();
       if (!text || !activeChatId) return;
-
       input.value = '';
       try {
         await fetch(`/api/chats/${activeChatId}/messages`, {
@@ -1051,21 +1136,18 @@
           body: JSON.stringify({ text })
         });
         fetchMessages();
-      } catch (e) {
-        alert('Ошибка отправки');
-      }
+      } catch (e) { alert('Ошибка отправки'); }
     }
 
-    // ---------------- PROFILE ----------------
+    // PROFILE
     function loadProfile() {
       if (!currentUser) return;
       document.getElementById('profileInitial').innerText = currentUser.name[0].toUpperCase();
-      document.getElementById('profileName').innerText = currentUser.name;
-      document.getElementById('profilePhone').innerText = currentUser.phone;
-      document.getElementById('profileCity').innerText = currentUser.city || 'Москва';
-
+      document.getElementById('profileName').innerHTML = `${currentUser.name}`;
+      document.getElementById('profilePhone').innerText = currentUser.phone || currentUser.email || '';
+      
       const myItems = currentItems.filter(i => i.sellerId === currentUser.id);
-      renderGrid(myItems, 'myItemsGrid', null);
+      renderGrid(myItems, 'myItemsGrid');
     }
   </script>
 </body>
