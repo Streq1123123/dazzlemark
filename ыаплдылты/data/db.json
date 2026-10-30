@@ -1,0 +1,94 @@
+{
+  "users": [
+    {
+      "id": "u_1793370015341_196",
+      "name": "Степан",
+      "phone": "89024215567",
+      "password": "8353f9968ee92f09237ae11cd002808135846096bd44f2c7bfd2f07a3921fb31",
+      "city": "Москва",
+      "avatar": "",
+      "rating": 5,
+      "dealsCount": 0,
+      "createdAt": "2026-10-30T14:20:15.342Z",
+      "token": "81c89d1a7315178e36fe0a9697c9980952e3b5e2e03d0b0c"
+    },
+    {
+      "id": "u_1793370073046_17",
+      "name": "Лялял",
+      "phone": "65614661616",
+      "password": "0aecfb147b1f6e24191ddf7838742f029ce407658e312074187cb031d52d0fef",
+      "city": "Москва",
+      "avatar": "",
+      "rating": 5,
+      "dealsCount": 0,
+      "createdAt": "2026-10-30T14:21:13.046Z",
+      "token": "c9ab9b1b6da94da7df0b28c7a20a228e9ac7524f17133afc"
+    }
+  ],
+  "items": [
+    {
+      "id": "item_1793371126792",
+      "sellerId": "u_1793370073046_17",
+      "sellerName": "Лялял",
+      "sellerPhone": "65614661616",
+      "sellerRating": 5,
+      "title": "Fmdkf",
+      "brand": "Без бренда",
+      "size": "One Size",
+      "price": 2500,
+      "category": "Женское",
+      "condition": "Новое с биркой",
+      "city": "Москва",
+      "description": "",
+      "photos": [
+        "/uploads/img_1793371120935_4110.jpg"
+      ],
+      "createdAt": "2026-10-30T14:38:46.792Z"
+    },
+    {
+      "id": "item_1793370057075",
+      "sellerId": "u_1793370015341_196",
+      "sellerName": "Степан",
+      "sellerPhone": "89024215567",
+      "sellerRating": 5,
+      "title": "Куртка зара тайп",
+      "brand": "Zara",
+      "size": "S",
+      "price": 2800,
+      "category": "Мужское",
+      "condition": "Новое с биркой",
+      "city": "Москва",
+      "description": "",
+      "photos": [
+        "/uploads/img_1793370034260_6237.jpg"
+      ],
+      "createdAt": "2026-10-30T14:20:57.075Z"
+    }
+  ],
+  "chats": [
+    {
+      "id": "chat_1793370197017",
+      "itemId": "item_1793370057075",
+      "itemTitle": "Куртка зара тайп",
+      "itemPrice": 2800,
+      "itemPhoto": "/uploads/img_1793370034260_6237.jpg",
+      "buyerId": "u_1793370073046_17",
+      "buyerName": "Лялял",
+      "sellerId": "u_1793370015341_196",
+      "sellerName": "Степан",
+      "createdAt": "2026-10-30T14:23:17.017Z",
+      "lastMessage": "Здравствуцте прожаете?",
+      "lastMessageTime": "2026-10-30T14:23:26.823Z"
+    }
+  ],
+  "messages": [
+    {
+      "id": "msg_1793370206823",
+      "chatId": "chat_1793370197017",
+      "senderId": "u_1793370073046_17",
+      "senderName": "Лялял",
+      "text": "Здравствуцте прожаете?",
+      "createdAt": "2026-10-30T14:23:26.823Z"
+    }
+  ]
+}
