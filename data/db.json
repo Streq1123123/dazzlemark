@@ -1,0 +1,197 @@
+{
+  "users": [
+    {
+      "id": "u_1793370015341_196",
+      "name": "Степан",
+      "phone": "89024215567",
+      "password": "8353f9968ee92f09237ae11cd002808135846096bd44f2c7bfd2f07a3921fb31",
+      "city": "Москва",
+      "avatar": "",
+      "rating": 5,
+      "dealsCount": 0,
+      "createdAt": "2026-10-30T14:20:15.342Z",
+      "token": "5dc91a60b1dd1cce95b23c2378012f57b8ff36fa4fe249d5"
+    },
+    {
+      "id": "u_1793370073046_17",
+      "name": "Лялял",
+      "phone": "65614661616",
+      "password": "0aecfb147b1f6e24191ddf7838742f029ce407658e312074187cb031d52d0fef",
+      "city": "Москва",
+      "avatar": "",
+      "rating": 5,
+      "dealsCount": 0,
+      "createdAt": "2026-10-30T14:21:13.046Z",
+      "token": "c9ab9b1b6da94da7df0b28c7a20a228e9ac7524f17133afc"
+    },
+    {
+      "id": "u_1793371941482_816",
+      "name": "Давид",
+      "phone": "89622589668",
+      "password": "308567076db4ab1e3aa8e815c824378cf68e2278a9fbd85641348e007fa778c4",
+      "city": "Москва",
+      "avatar": "",
+      "rating": 5,
+      "dealsCount": 0,
+      "createdAt": "2026-10-30T14:52:21.482Z",
+      "token": "2a241f302d756885af60cab546bb9361ca2b3f7d68fb44bc"
+    }
+  ],
+  "items": [
+    {
+      "id": "item_1793372013561",
+      "sellerId": "u_1793371941482_816",
+      "sellerName": "Давид",
+      "sellerPhone": "89622589668",
+      "sellerRating": 5,
+      "title": "jordan 5",
+      "brand": "naik",
+      "size": "41,42,43,44",
+      "price": 3000,
+      "category": "Мужское",
+      "condition": "Новое с биркой",
+      "city": "Москва",
+      "description": "кайф",
+      "photos": [
+        "/uploads/img_1793371977453_5990.png"
+      ],
+      "createdAt": "2026-10-30T14:53:33.561Z"
+    },
+    {
+      "id": "item_1793371126792",
+      "sellerId": "u_1793370073046_17",
+      "sellerName": "Лялял",
+      "sellerPhone": "65614661616",
+      "sellerRating": 5,
+      "title": "Fmdkf",
+      "brand": "Без бренда",
+      "size": "One Size",
+      "price": 2500,
+      "category": "Женское",
+      "condition": "Новое с биркой",
+      "city": "Москва",
+      "description": "",
+      "photos": [
+        "/uploads/img_1793371120935_4110.jpg"
+      ],
+      "createdAt": "2026-10-30T14:38:46.792Z"
+    },
+    {
+      "id": "item_1793370057075",
+      "sellerId": "u_1793370015341_196",
+      "sellerName": "Степан",
+      "sellerPhone": "89024215567",
+      "sellerRating": 5,
+      "title": "Куртка зара тайп",
+      "brand": "Zara",
+      "size": "S",
+      "price": 2800,
+      "category": "Мужское",
+      "condition": "Новое с биркой",
+      "city": "Москва",
+      "description": "",
+      "photos": [
+        "/uploads/img_1793370034260_6237.jpg"
+      ],
+      "createdAt": "2026-10-30T14:20:57.075Z"
+    }
+  ],
+  "chats": [
+    {
+      "id": "chat_1793370197017",
+      "itemId": "item_1793370057075",
+      "itemTitle": "Куртка зара тайп",
+      "itemPrice": 2800,
+      "itemPhoto": "/uploads/img_1793370034260_6237.jpg",
+      "buyerId": "u_1793370073046_17",
+      "buyerName": "Лялял",
+      "sellerId": "u_1793370015341_196",
+      "sellerName": "Степан",
+      "createdAt": "2026-10-30T14:23:17.017Z",
+      "lastMessage": "Здравствуцте прожаете?",
+      "lastMessageTime": "2026-10-30T14:23:26.823Z"
+    },
+    {
+      "id": "chat_1793371854865",
+      "itemId": "item_1793371126792",
+      "itemTitle": "Fmdkf",
+      "itemPrice": 2500,
+      "itemPhoto": "/uploads/img_1793371120935_4110.jpg",
+      "buyerId": "u_1793370015341_196",
+      "buyerName": "Степан",
+      "sellerId": "u_1793370073046_17",
+      "sellerName": "Лялял",
+      "createdAt": "2026-10-30T14:50:54.865Z",
+      "lastMessage": "пошел нахуй",
+      "lastMessageTime": "2026-10-30T14:51:22.366Z"
+    },
+    {
+      "id": "chat_1793371947242",
+      "itemId": "item_1793370057075",
+      "itemTitle": "Куртка зара тайп",
+      "itemPrice": 2800,
+      "itemPhoto": "/uploads/img_1793370034260_6237.jpg",
+      "buyerId": "u_1793371941482_816",
+      "buyerName": "Давид",
+      "sellerId": "u_1793370015341_196",
+      "sellerName": "Степан",
+      "createdAt": "2026-10-30T14:52:27.242Z",
+      "lastMessage": "loX",
+      "lastMessageTime": "2026-10-30T14:52:35.639Z"
+    },
+    {
+      "id": "chat_1793372032085",
+      "itemId": "item_1793372013561",
+      "itemTitle": "jordan 5",
+      "itemPrice": 3000,
+      "itemPhoto": "/uploads/img_1793371977453_5990.png",
+      "buyerId": "u_1793370015341_196",
+      "buyerName": "Степан",
+      "sellerId": "u_1793371941482_816",
+      "sellerName": "Давид",
+      "createdAt": "2026-10-30T14:53:52.085Z"
+    }
+  ],
+  "messages": [
+    {
+      "id": "msg_1793370206823",
+      "chatId": "chat_1793370197017",
+      "senderId": "u_1793370073046_17",
+      "senderName": "Лялял",
+      "text": "Здравствуцте прожаете?",
+      "createdAt": "2026-10-30T14:23:26.823Z"
+    },
+    {
+      "id": "msg_1793371858145",
+      "chatId": "chat_1793371854865",
+      "senderId": "u_1793370015341_196",
+      "senderName": "Степан",
+      "text": "nddjdjdj",
+      "createdAt": "2026-10-30T14:50:58.145Z"
+    },
+    {
+      "id": "msg_1793371882365",
+      "chatId": "chat_1793371854865",
+      "senderId": "u_1793370015341_196",
+      "senderName": "Степан",
+      "text": "пошел нахуй",
+      "createdAt": "2026-10-30T14:51:22.366Z"
+    },
+    {
+      "id": "msg_1793371955639",
+      "chatId": "chat_1793371947242",
+      "senderId": "u_1793371941482_816",
+      "senderName": "Давид",
+      "text": "loX",
+      "createdAt": "2026-10-30T14:52:35.639Z"
+    },
+    {
+      "id": "msg_1793372034077",
+      "chatId": "chat_1793372032085",
+      "senderId": "u_1793370015341_196",
+      "senderName": "Степан",
+      "text": ";ljgf",
+      "createdAt": "2026-10-30T14:53:54.077Z"
+    }
+  ]
+}
