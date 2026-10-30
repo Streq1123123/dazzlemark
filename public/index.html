@@ -4,8 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>DazzleMark — Одежда, обувь и стиль</title>
-  <!-- Официальный Google Sign-In SDK -->
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
   <style>
     :root {
       --bg: #0D0D0F;
@@ -289,6 +287,26 @@
       margin-top: 10px;
     }
 
+    /* Google Button - ALWAYS VISIBLE & BEAUTIFUL */
+    .btn-google {
+      width: 100%;
+      background: #FFFFFF;
+      color: #1F2937;
+      border: 1px solid #E5E7EB;
+      padding: 12px 16px;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      cursor: pointer;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      transition: background 0.15s, transform 0.1s;
+    }
+    .btn-google:active { transform: scale(0.98); background: #F3F4F6; }
+
     .divider {
       display: flex;
       align-items: center;
@@ -554,8 +572,11 @@
           Настоящая верификация исключает мошенников и фейковые профили.
         </p>
 
-        <!-- Настоящая кнопка Google Sign-In SDK -->
-        <div id="googleBtnContainer" style="display: flex; justify-content: center; margin-bottom: 14px;"></div>
+        <!-- НАСТОЯЩАЯ КНОПКА GOOGLE С ОТКРЫТИЕМ ОФИЦИАЛЬНОГО ОКНА GOOGLE -->
+        <button class="btn-google" onclick="openOfficialGoogleAuth()">
+          <svg width="20" height="20" viewBox="0 0 24 24"><path fill="#EA4335" d="M12 5c1.6 0 3 .6 4.1 1.6l3.1-3.1C17.3 1.7 14.8 1 12 1 7.5 1 3.7 3.6 1.9 7.3l3.7 2.9C6.5 7.4 9 5 12 5z"/><path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.6h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5 3.7-8.9z"/><path fill="#FBBC05" d="M5.6 14.8c-.2-.7-.4-1.5-.4-2.3s.2-1.6.4-2.3L1.9 7.3C.7 9.7 0 12.3 0 15.2s.7 5.5 1.9 7.9l3.7-2.9z"/><path fill="#34A853" d="M12 23.5c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3 0-5.5-2.4-6.4-5.2L1.9 16.5C3.7 20.3 7.5 23.5 12 23.5z"/></svg>
+          Войти через Google
+        </button>
 
         <div class="divider">или по номеру телефона</div>
 
@@ -651,82 +672,69 @@
     let chatInterval = null;
     let isRegisterMode = false;
     let otpCooldownInterval = null;
-    let googleClientId = '5212949470-19jiei0ajh3hg5evok1bd8uc28ecg3t6.apps.googleusercontent.com';
+
+    const GOOGLE_CLIENT_ID = '5212949470-19jiei0ajh3hg5evok1bd8uc28ecg3t6.apps.googleusercontent.com';
 
     window.addEventListener('DOMContentLoaded', async () => {
-      await initConfig();
+      // Проверяем, вернулся ли пользователь после авторизации Google (OAuth Redirect)
+      handleGoogleCallbackFromUrl();
       await checkAuth();
       await loadItems();
     });
 
-    async function initConfig() {
-      try {
-        const res = await fetch('/api/config');
-        const cfg = await res.json();
-        googleClientId = cfg.googleClientId;
-        initGoogleSdk();
-      } catch (e) { console.error('Config fetch failed', e); }
+    // НАСТОЯЩИЙ ВХОД GOOGLE (ОТКРЫВАЕТ ОФИЦИАЛЬНУЮ СТРАНИЦУ GOOGLE ДАЖЕ НА IPHONE)
+    function openOfficialGoogleAuth() {
+      const redirectUri = window.location.origin + window.location.pathname;
+      const scope = encodeURIComponent('openid email profile');
+      const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${GOOGLE_CLIENT_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=token&scope=${scope}&prompt=select_account`;
+      
+      // Открываем настоящее окно Google
+      window.location.href = googleAuthUrl;
     }
 
-    // Инициализация настоящего Google SDK
-    function initGoogleSdk() {
-      if (!window.google || !googleClientId) {
-        // Fallback если Google Client ID ещё не введен в настройках
-        renderCustomGoogleButton();
-        return;
-      }
-      try {
-        google.accounts.id.initialize({
-          client_id: googleClientId,
-          callback: handleGoogleCredentialResponse,
-          auto_select: false
-        });
-        google.accounts.id.renderButton(
-          document.getElementById('googleBtnContainer'),
-          { theme: 'filled_black', size: 'large', shape: 'pill', width: 280, text: 'signin_with' }
-        );
-      } catch (err) {
-        renderCustomGoogleButton();
-      }
-    }
-
-    function renderCustomGoogleButton() {
-      const container = document.getElementById('googleBtnContainer');
-      container.innerHTML = `
-        <button style="width: 100%; max-width: 280px; background: #fff; color: #1F2937; border: none; padding: 10px 16px; border-radius: 20px; font-size: 14px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer;" onclick="onGoogleLoginClick()">
-          <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#EA4335" d="M12 5c1.6 0 3 .6 4.1 1.6l3.1-3.1C17.3 1.7 14.8 1 12 1 7.5 1 3.7 3.6 1.9 7.3l3.7 2.9C6.5 7.4 9 5 12 5z"/><path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.6h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5 3.7-8.9z"/><path fill="#FBBC05" d="M5.6 14.8c-.2-.7-.4-1.5-.4-2.3s.2-1.6.4-2.3L1.9 7.3C.7 9.7 0 12.3 0 15.2s.7 5.5 1.9 7.9l3.7-2.9z"/><path fill="#34A853" d="M12 23.5c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3 0-5.5-2.4-6.4-5.2L1.9 16.5C3.7 20.3 7.5 23.5 12 23.5z"/></svg>
-          Войти через Google
-        </button>
-      `;
-    }
-
-    function onGoogleLoginClick() {
-      if (window.google && googleClientId) {
-        google.accounts.id.prompt();
-      } else {
-        alert('Для включения реального всплывающего окна Google укажите GOOGLE_CLIENT_ID в настройках Render (Environment Variables).');
-      }
-    }
-
-    async function handleGoogleCredentialResponse(response) {
-      if (!response.credential) return;
-      try {
-        const res = await fetch('/api/auth/google', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ credential: response.credential })
-        });
-        const data = await res.json();
-        if (data.error) return alert(data.error);
-
-        token = data.token;
-        currentUser = data.user;
-        localStorage.setItem('dazzle_token', token);
-        closeAuthModal();
-        updateAuthUI();
-        alert('✓ Вход через Google подтвержден!');
-      } catch (e) {
-        alert('Ошибка авторизации через Google');
+    // Обработка возврата из Google
+    async function handleGoogleCallbackFromUrl() {
+      const hash = window.location.hash;
+      if (hash && hash.includes('access_token=')) {
+        const params = new URLSearchParams(hash.substring(1));
+        const accessToken = params.get('access_token');
+        if (accessToken) {
+          // Очищаем адресную строку
+          history.replaceState(null, null, ' ');
+          try {
+            // Получаем настоящий профиль пользователя напрямую из Google UserInfo API
+            const gRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+              headers: { 'Authorization': `Bearer ${accessToken}` }
+            });
+            const gUser = await gRes.json();
+            if (gUser && gUser.email) {
+              // Регистрируем/логиним на сервере
+              const authRes = await fetch('/api/auth/google', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  profile: {
+                    id: gUser.sub,
+                    email: gUser.email,
+                    name: gUser.name,
+                    avatar: gUser.picture,
+                    emailVerified: true
+                  }
+                })
+              });
+              const authData = await authRes.json();
+              if (authData.token) {
+                token = authData.token;
+                currentUser = authData.user;
+                localStorage.setItem('dazzle_token', token);
+                updateAuthUI();
+                alert(`✓ Добро пожаловать, ${currentUser.name}! Аккаунт подтвержден через Google.`);
+              }
+            }
+          } catch (err) {
+            console.error('Google Auth Error', err);
+          }
+        }
       }
     }
 
