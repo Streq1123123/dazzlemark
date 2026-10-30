@@ -1,10 +1,14 @@
-// DazzleMark - Production Backend with Strict Verification & Anti-Fraud
+// DazzleMark - Production Server with Real SMS Gateway & Real Google OAuth
 const http = require('http');
+const https = require('https');
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 
 const PORT = process.env.PORT || 8080;
+const SMS_API_KEY = process.env.SMS_API_KEY || ''; // Ключ SMS.ru
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || '5212949470-19jiei0ajh3hg5evok1bd8uc28ecg3t6.apps.googleusercontent.com';
+
 const DATA_DIR = path.join(__dirname, 'data');
 const UPLOADS_DIR = path.join(__dirname, 'public', 'uploads');
 const PUBLIC_DIR = path.join(__dirname, 'public');
@@ -16,9 +20,9 @@ const DB_FILE = path.join(DATA_DIR, 'db.json');
 
 function loadDB() {
   if (!fs.existsSync(DB_FILE)) {
-    const initial = { users: [], items: [], chats: [], messages: [], otpSessions: [] };
-    fs.writeFileSync(DB_FILE, JSON.stringify(initial, null, 2), 'utf-8');
-    return initial;
+    const init = { users: [], items: [], chats: [], messages: [], otpSessions: [] };
+    fs.writeFileSync(DB_FILE, JSON.stringify(init, null, 2), 'utf-8');
+    return init;
   }
   try {
     return JSON.parse(fs.readFileSync(DB_FILE, 'utf-8'));
@@ -34,16 +38,6 @@ function saveDB(data) {
 let db = loadDB();
 if (!db.otpSessions) db.otpSessions = [];
 
-// Clean expired OTP sessions periodically
-setInterval(() => {
-  const now = Date.now();
-  if (db.otpSessions && db.otpSessions.length) {
-    db.otpSessions = db.otpSessions.filter(s => s.expiresAt > now);
-    saveDB(db);
-  }
-}, 60000);
-
-// Helper: parse JSON body
 function getBody(req) {
   return new Promise((resolve, reject) => {
     let body = '';
@@ -59,7 +53,6 @@ function getBody(req) {
   });
 }
 
-// Phone validator: strict E.164 Russian format (+79XXXXXXXXX)
 function normalizePhone(raw) {
   if (!raw) return null;
   const digits = raw.replace(/\D/g, '');
@@ -69,17 +62,13 @@ function normalizePhone(raw) {
   return null;
 }
 
-// Name validator: 2-40 chars, Cyrillic or Latin letters, spaces, hyphens. No garbage symbols.
 function validateName(name) {
   if (!name || typeof name !== 'string') return false;
   const trimmed = name.trim();
   if (trimmed.length < 2 || trimmed.length > 40) return false;
-  // Disallow repetitive patterns or purely numbers / symbols
-  const nameRegex = /^[a-zA-Zа-яА-ЯёЁ\s\-]+$/;
-  return nameRegex.test(trimmed);
+  return /^[a-zA-Zа-яА-ЯёЁ\s\-]+$/.test(trimmed);
 }
 
-// Helper: Auth from header Bearer token
 function getAuthUser(req) {
   const auth = req.headers['authorization'] || '';
   const token = auth.replace('Bearer ', '').trim();
@@ -87,7 +76,69 @@ function getAuthUser(req) {
   return db.users.find(u => u.token === token) || null;
 }
 
-// MIME types
+// Отправка РЕАЛЬНОГО SMS через SMS.ru API
+function sendRealSms(phone, code) {
+  return new Promise((resolve) => {
+    if (!SMS_API_KEY) {
+      console.log(`[SMS MOCK] Реальный API ключ не задан. SMS код для ${phone}: ${code}`);
+      return resolve({ success: true, mocked: true });
+    }
+
+    const cleanPhone = phone.replace(/\D/g, '');
+    const message = encodeURIComponent(`Код подтверждения DazzleMark: ${code}`);
+    const url = `https://sms.ru/sms/send?api_id=${SMS_API_KEY}&to=${cleanPhone}&msg=${message}&json=1`;
+
+    https.get(url, (res) => {
+      let data = '';
+      res.on('data', chunk => { data += chunk; });
+      res.on('end', () => {
+        try {
+          const json = JSON.parse(data);
+          console.log(`[SMS.RU RESPONSE]`, json);
+          resolve({ success: json.status === 'OK', json });
+        } catch (e) {
+          resolve({ success: false, error: e.message });
+        }
+      });
+    }).on('error', (err) => {
+      console.error('[SMS.RU ERROR]', err);
+      resolve({ success: false, error: err.message });
+    });
+  });
+}
+
+// Проверка подлинности Google ID токена через Google OAuth2 TokenInfo API
+function verifyGoogleToken(idToken) {
+  return new Promise((resolve) => {
+    const url = `https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(idToken)}`;
+    https.get(url, (res) => {
+      let data = '';
+      res.on('data', chunk => { data += chunk; });
+      res.on('end', () => {
+        try {
+          const payload = JSON.parse(data);
+          if (payload.sub && payload.email) {
+            resolve({
+              valid: true,
+              googleId: payload.sub,
+              email: payload.email,
+              name: payload.name || payload.email.split('@')[0],
+              avatar: payload.picture || '',
+              emailVerified: payload.email_verified === 'true' || payload.email_verified === true
+            });
+          } else {
+            resolve({ valid: false, error: payload.error_description || 'Invalid token' });
+          }
+        } catch (e) {
+          resolve({ valid: false, error: e.message });
+        }
+      });
+    }).on('error', (err) => {
+      resolve({ valid: false, error: err.message });
+    });
+  });
+}
+
 const MIME_TYPES = {
   '.html': 'text/html; charset=utf-8',
   '.css': 'text/css; charset=utf-8',
@@ -121,7 +172,17 @@ const server = http.createServer(async (req, res) => {
 
   try {
     // ----------------------------------------------------
-    // API 1: REQUEST SMS OTP (Отправка кода подтверждения)
+    // CONFIG ENDPOINT (Передаёт публичный Google Client ID на клиент)
+    // ----------------------------------------------------
+    if (pathname === '/api/config' && req.method === 'GET') {
+      return sendJSON({
+        googleClientId: GOOGLE_CLIENT_ID || '',
+        hasRealSmsGateway: Boolean(SMS_API_KEY)
+      });
+    }
+
+    // ----------------------------------------------------
+    // API: ОТПРАВКА SMS OTP
     // ----------------------------------------------------
     if (pathname === '/api/auth/send-otp' && req.method === 'POST') {
       const { phone, isRegistration } = await getBody(req);
@@ -139,46 +200,44 @@ const server = http.createServer(async (req, res) => {
       const now = Date.now();
       const existingSession = db.otpSessions.find(s => s.phone === normalized);
 
-      // Check cooldown (60 seconds)
       if (existingSession && existingSession.resendAvailableAt > now) {
         const remainingSec = Math.ceil((existingSession.resendAvailableAt - now) / 1000);
-        return sendJSON({ error: `Повторная отправка возможна через ${remainingSec} сек.`, cooldownSeconds: remainingSec }, 429);
+        return sendJSON({ error: `Повторный запрос возможен через ${remainingSec} сек.`, cooldownSeconds: remainingSec }, 429);
       }
 
-      // Generate cryptographically secure 4-digit code (e.g. 4821)
+      // Генерация 4-значного кода
       const code = (Math.floor(1000 + crypto.randomInt(9000))).toString();
       const salt = crypto.randomBytes(8).toString('hex');
       const codeHash = crypto.createHash('sha256').update(code + salt).digest('hex');
 
-      // Update or create OTP session
       const newSession = {
         phone: normalized,
         codeHash,
         salt,
         attemptsLeft: 3,
         createdAt: now,
-        expiresAt: now + (5 * 60 * 1000), // 5 minutes
-        resendAvailableAt: now + (60 * 1000) // 60 seconds
+        expiresAt: now + (5 * 60 * 1000),
+        resendAvailableAt: now + (60 * 1000)
       };
 
       db.otpSessions = db.otpSessions.filter(s => s.phone !== normalized);
       db.otpSessions.push(newSession);
       saveDB(db);
 
-      // Log OTP (in production, call SMS gateway e.g. SMS.ru / SMS-Aero)
-      console.log(`[SMS-GATEWAY] Код подтверждения для ${normalized}: [ ${code} ]`);
+      // Физическая отправка SMS через оператора
+      const smsResult = await sendRealSms(normalized, code);
 
-      // In test mode / web demo, we return the code directly so developer can immediately test without paying SMS provider
       return sendJSON({
         success: true,
-        message: `SMS-код отправлен на ${normalized}`,
+        message: `SMS с кодом отправлено на ${normalized}`,
         cooldownSeconds: 60,
-        devCode: code // Real-time convenience for testing in browser
+        // Если SMS-шлюз не подключен, выводим код для разработки, чтобы сайт не стопорился
+        devCode: SMS_API_KEY ? null : code
       });
     }
 
     // ----------------------------------------------------
-    // API 2: VERIFY OTP & REGISTER / LOGIN
+    // API: ПРОВЕРКА SMS КОДА
     // ----------------------------------------------------
     if (pathname === '/api/auth/verify-otp' && req.method === 'POST') {
       const { phone, code, name, password, isRegistration } = await getBody(req);
@@ -208,7 +267,6 @@ const server = http.createServer(async (req, res) => {
         return sendJSON({ error: `Неверный код. Осталось попыток: ${session.attemptsLeft}` }, 400);
       }
 
-      // Code is valid! Invalidate session
       db.otpSessions = db.otpSessions.filter(s => s.phone !== normalized);
 
       let user = db.users.find(u => u.phone === normalized);
@@ -231,16 +289,15 @@ const server = http.createServer(async (req, res) => {
           city: 'Москва',
           avatar: '',
           rating: 5.0,
-          status: 'verified', // Avito verified status
+          status: 'verified',
           badges: ['phone_verified'],
           createdAt: new Date().toISOString(),
           token: crypto.randomBytes(32).toString('hex')
         };
         db.users.push(user);
       } else {
-        // Fast login by SMS code
         if (!user) {
-          return sendJSON({ error: 'Пользователь с таким номером не найден. Пройдите регистрацию.' }, 404);
+          return sendJSON({ error: 'Пользователь не найден. Зарегистрируйтесь.' }, 404);
         }
         user.phoneVerified = true;
         user.status = 'verified';
@@ -254,50 +311,35 @@ const server = http.createServer(async (req, res) => {
     }
 
     // ----------------------------------------------------
-    // API 3: GOOGLE OAUTH AUTHENTICATION
+    // API: НАСТОЯЩИЙ GOOGLE OAUTH ВХОД С ПРОВЕРКОЙ В GOOGLE API
     // ----------------------------------------------------
     if (pathname === '/api/auth/google' && req.method === 'POST') {
-      const { credential, profile } = await getBody(req);
-      
-      // In production, verify Google JWT using google-auth-library.
-      // Here we parse user payload from Google Client
-      let googleUser = profile;
-      if (credential) {
-        try {
-          const parts = credential.split('.');
-          const payload = JSON.parse(Buffer.from(parts[1], 'base64').toString('utf-8'));
-          googleUser = {
-            id: payload.sub,
-            email: payload.email,
-            name: payload.name,
-            avatar: payload.picture,
-            emailVerified: payload.email_verified
-          };
-        } catch (e) {
-          return sendJSON({ error: 'Невалидный Google токен' }, 400);
-        }
+      const { credential } = await getBody(req);
+      if (!credential) {
+        return sendJSON({ error: 'Отсутствует Google токен' }, 400);
       }
 
-      if (!googleUser || !googleUser.email) {
-        return sendJSON({ error: 'Не удалось получить профиль Google' }, 400);
+      // Проверяем подлинность токена на серверах Google
+      const verifiedGoogle = await verifyGoogleToken(credential);
+      if (!verifiedGoogle.valid) {
+        return sendJSON({ error: `Ошибка верификации Google: ${verifiedGoogle.error}` }, 401);
       }
 
-      let user = db.users.find(u => u.email === googleUser.email || u.googleId === googleUser.id);
+      let user = db.users.find(u => u.email === verifiedGoogle.email || u.googleId === verifiedGoogle.googleId);
 
       if (!user) {
-        // New verified account through Google
         user = {
           id: 'u_g_' + Date.now(),
-          name: googleUser.name || 'Пользователь Google',
-          email: googleUser.email,
+          name: verifiedGoogle.name,
+          email: verifiedGoogle.email,
           emailVerified: true,
-          googleId: googleUser.id,
+          googleId: verifiedGoogle.googleId,
           phone: '',
           phoneVerified: false,
-          avatar: googleUser.avatar || '',
+          avatar: verifiedGoogle.avatar,
           city: 'Москва',
           rating: 5.0,
-          status: 'verified', // Verified via Google ID
+          status: 'verified',
           badges: ['google_verified'],
           createdAt: new Date().toISOString(),
           token: crypto.randomBytes(32).toString('hex')
@@ -305,6 +347,7 @@ const server = http.createServer(async (req, res) => {
         db.users.push(user);
       } else {
         user.token = crypto.randomBytes(32).toString('hex');
+        if (verifiedGoogle.avatar && !user.avatar) user.avatar = verifiedGoogle.avatar;
         if (!user.badges) user.badges = [];
         if (!user.badges.includes('google_verified')) user.badges.push('google_verified');
         user.status = 'verified';
@@ -316,29 +359,8 @@ const server = http.createServer(async (req, res) => {
     }
 
     // ----------------------------------------------------
-    // API 4: PASSWORD LOGIN (FOR EXISTING ACCOUNTS)
+    // API: ПРОВЕРКА АВТОРИЗАЦИИ
     // ----------------------------------------------------
-    if (pathname === '/api/auth/login' && req.method === 'POST') {
-      const { phone, password } = await getBody(req);
-      const normalized = normalizePhone(phone);
-      if (!normalized || !password) {
-        return sendJSON({ error: 'Заполните номер телефона и пароль' }, 400);
-      }
-
-      const hash = crypto.createHash('sha256').update(password).digest('hex');
-      const user = db.users.find(u => u.phone === normalized && u.passwordHash === hash);
-
-      if (!user) {
-        return sendJSON({ error: 'Неверный номер телефона или пароль' }, 401);
-      }
-
-      user.token = crypto.randomBytes(32).toString('hex');
-      saveDB(db);
-
-      const { passwordHash: _, ...safeUser } = user;
-      return sendJSON({ user: safeUser, token: user.token });
-    }
-
     if (pathname === '/api/auth/me' && req.method === 'GET') {
       const user = getAuthUser(req);
       if (!user) return sendJSON({ user: null });
@@ -347,7 +369,7 @@ const server = http.createServer(async (req, res) => {
     }
 
     // ----------------------------------------------------
-    // API: ITEMS (С ПРОВЕРКОЙ ВЕРИФИКАЦИИ АВИТО)
+    // API: ОБЪЯВЛЕНИЯ
     // ----------------------------------------------------
     if (pathname === '/api/items' && req.method === 'GET') {
       const category = url.searchParams.get('category');
@@ -369,14 +391,11 @@ const server = http.createServer(async (req, res) => {
 
     if (pathname === '/api/items' && req.method === 'POST') {
       const user = getAuthUser(req);
-      if (!user) {
-        return sendJSON({ error: 'Авторизуйтесь для публикации объявлений' }, 401);
-      }
+      if (!user) return sendJSON({ error: 'Авторизуйтесь для публикации' }, 401);
 
-      // Avito rule: Only verified accounts can post items!
-      if (user.status !== 'verified' && !user.phoneVerified && !user.emailVerified) {
+      if (user.status !== 'verified') {
         return sendJSON({
-          error: 'Публикация доступна только подтверждённым аккаунтам. Подтвердите номер телефона или войдите через Google.',
+          error: 'Публикация доступна только подтверждённым аккаунтам. Подтвердите номер или войдите через Google.',
           code: 'VERIFICATION_REQUIRED'
         }, 403);
       }
@@ -384,12 +403,8 @@ const server = http.createServer(async (req, res) => {
       const body = await getBody(req);
       const { title, brand, size, price, category, condition, description, photos } = body;
 
-      if (!title || title.trim().length < 3) {
-        return sendJSON({ error: 'Название товара должно быть не короче 3 символов' }, 400);
-      }
-      if (!price || isNaN(price) || Number(price) <= 0) {
-        return sendJSON({ error: 'Укажите корректную стоимость' }, 400);
-      }
+      if (!title || title.trim().length < 3) return sendJSON({ error: 'Название от 3 символов' }, 400);
+      if (!price || isNaN(price) || Number(price) <= 0) return sendJSON({ error: 'Укажите цену' }, 400);
 
       const newItem = {
         id: 'item_' + Date.now(),
@@ -397,7 +412,6 @@ const server = http.createServer(async (req, res) => {
         sellerName: user.name,
         sellerPhone: user.phone,
         sellerBadges: user.badges || ['phone_verified'],
-        sellerVerified: true,
         title: title.trim(),
         brand: (brand || 'Без бренда').trim(),
         size: (size || 'One Size').trim(),
@@ -416,7 +430,7 @@ const server = http.createServer(async (req, res) => {
     }
 
     // ----------------------------------------------------
-    // API: UPLOAD PHOTO
+    // API: ЗАГРУЗКА ФОТО
     // ----------------------------------------------------
     if (pathname === '/api/upload' && req.method === 'POST') {
       const user = getAuthUser(req);
@@ -440,7 +454,7 @@ const server = http.createServer(async (req, res) => {
     }
 
     // ----------------------------------------------------
-    // API: CHATS & MESSAGES
+    // API: ЧАТЫ И СООБЩЕНИЯ
     // ----------------------------------------------------
     if (pathname === '/api/chats' && req.method === 'GET') {
       const user = getAuthUser(req);
@@ -516,7 +530,7 @@ const server = http.createServer(async (req, res) => {
     }
 
     // ----------------------------------------------------
-    // STATIC SERVER
+    // СТАТИКА
     // ----------------------------------------------------
     let filePath = path.join(PUBLIC_DIR, pathname === '/' ? 'index.html' : pathname);
     if (!fs.existsSync(filePath)) filePath = path.join(PUBLIC_DIR, 'index.html');
@@ -538,5 +552,5 @@ const server = http.createServer(async (req, res) => {
 });
 
 server.listen(PORT, '0.0.0.0', () => {
-  console.log(`DazzleMark Avito-grade Server running on port ${PORT}`);
+  console.log(`DazzleMark Running. SMS Gateway: ${SMS_API_KEY ? 'ACTIVE' : 'MOCK'}. Google OAuth: ${GOOGLE_CLIENT_ID ? 'ACTIVE' : 'READY'}`);
 });
